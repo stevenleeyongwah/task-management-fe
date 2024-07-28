@@ -25,17 +25,15 @@ import {
 } from "@/components/ui/card"
 
 export default function Home() {
-  const [tasks, setTasks] = useState([
-    {
-      "name": "Task 1"
-    }
-  ]);
-  const [newTask, setNewTask] = useState('');
+  const [tasks, setTasks] = useState([]);
+  const [taskName, setTaskName] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
  
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/tasks');
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/tasks`);
+        console.log("response: ", response)
         setTasks(response.data);
       } catch (error) {
         console.error('Error fetching tasks:', error);
@@ -47,15 +45,28 @@ export default function Home() {
 
   const handleCreateTask = async () => {
     try {
-      const response = await axios.post('https://your-backend-api-url.com/tasks', {
-        task: newTask,
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/task`, {
+        name: taskName,
       });
       
       // Add the newly created task to the tasks array
       setTasks([...tasks, response.data]);
+
+      setDialogOpen(false)
+    } catch (error) {
+      setDialogOpen(false)
+      console.error('Error creating task:', error);
+    }
+  }
+
+  const handleMarkTaskAsCompleted = async (id, completed) => {
+    try {
+      const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/task/${id}`, {
+        completed: completed,
+      });
       
-      // Clear the input field
-      setNewTask('');
+      // Add the newly created task to the tasks array
+      setTasks(tasks.map(task => task.id === response.data.id ? response.data : task));
     } catch (error) {
       console.error('Error creating task:', error);
     }
@@ -63,7 +74,7 @@ export default function Home() {
 
   return (
     <main className="p-8">
-      <Dialog>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
           <Button className="mb-2" variant="outline">Create task</Button>
         </DialogTrigger>
@@ -72,7 +83,7 @@ export default function Home() {
             <DialogTitle>Create task</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <Input id="name" placeholder="Task name" className="col-span-3" />
+            <Input onChange={(e) => setTaskName(e.target.value)} id="name" placeholder="Task name" className="col-span-3" />
           </div>
           <DialogFooter>
             <Button onClick={handleCreateTask} type="submit">Create</Button>
@@ -81,16 +92,21 @@ export default function Home() {
       </Dialog>
 
       {
-        tasks.map(task => {
+        tasks.length > 0 && tasks.map(task => {
           return <>
-            <Card className="w-[350px]">
-              <CardHeader>
-                <CardTitle>{task.name}</CardTitle>
-              </CardHeader>
-
-              <CardFooter className="flex justify-between">
-                <Button variant="outline">Click to mark as complete</Button>
-              </CardFooter>
+            <Card className="w-[350px] mb-2">
+              <CardContent className="flex items-center mt-2 justify-between">
+                <p>{task.name}</p>
+                {
+                  task.completed ?
+                    <>
+                      Completed
+                    </>
+                  : <>
+                    <Button onClick={() => handleMarkTaskAsCompleted(task.id, 1)} variant="outline">Click to mark as complete</Button> 
+                  </>
+                }
+              </CardContent>
             </Card>
           </>
         })
