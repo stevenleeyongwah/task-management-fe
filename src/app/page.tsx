@@ -15,9 +15,21 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
 export default function Home() {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState([
+    {
+      "name": "Task 1"
+    }
+  ]);
   const [newTask, setNewTask] = useState('');
  
   useEffect(() => {
@@ -50,10 +62,10 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+    <main className="p-8">
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="outline">Create task</Button>
+          <Button className="mb-2" variant="outline">Create task</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -67,6 +79,22 @@ export default function Home() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {
+        tasks.map(task => {
+          return <>
+            <Card className="w-[350px]">
+              <CardHeader>
+                <CardTitle>{task.name}</CardTitle>
+              </CardHeader>
+
+              <CardFooter className="flex justify-between">
+                <Button variant="outline">Click to mark as complete</Button>
+              </CardFooter>
+            </Card>
+          </>
+        })
+      }
     </main>
   );
 }
